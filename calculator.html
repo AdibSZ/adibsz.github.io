@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ماشین حساب</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-2: #15151f;
+    --surface: rgba(255, 255, 255, 0.055);
+    --surface-2: rgba(255, 255, 255, 0.09);
+    --surface-active: rgba(255, 255, 255, 0.16);
+    --fg: #ffffff;
+    --muted: rgba(255, 255, 255, 0.55);
+    --accent: #ff7a45;
+    --accent-2: #ff5e2c;
+    --accent-glow: rgba(255, 122, 69, 0.45);
+    --op: #ffb15a;
+    --op-glow: rgba(255, 177, 90, 0.4);
+    --success: #4ade80;
+    --danger: #ff5e5e;
+    --border: rgba(255, 255, 255, 0.06);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    font-family: 'Vazirmatn', system-ui, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    color: var(--fg);
+    overflow: hidden;
+    position: relative;
+    padding: 20px;
+  }
+
+  /* پس‌زمینه چندلایه برای عمق */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% -10%, rgba(255, 122, 69, 0.18), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 110% 110%, rgba(255, 94, 94, 0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at -10% 110%, rgba(74, 222, 128, 0.07), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  .calculator {
+    width: 100%;
+    max-width: 360px;
+    background: linear-gradient(155deg, rgba(30, 30, 42, 0.85), rgba(15, 15, 22, 0.92));
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-radius: 36px;
+    border: 1px solid var(--border);
+    padding: 22px 18px 18px;
+    box-shadow:
+      0 30px 70px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+      0 1px 0 rgba(255, 255, 255, 0.06) inset;
+    position: relative;
+    z-index: 1;
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 14px;
+  }
+
+  .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .brand::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .status-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    transition: all 0.3s;
+  }
+
+  .dot.active {
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+  }
+
+  /* صفحه‌نمایش */
+  .display {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.15));
+    border-radius: 24px;
+    padding: 22px 20px 20px;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    margin-bottom: 18px;
+  }
+
+  .display::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(255, 122, 69, 0.08), transparent 70%);
+    pointer-events: none;
+  }
+
+  .display::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -50%;
+    width: 140%;
+    height: 100%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(255, 122, 69, 0.12), transparent 60%);
+    filter: blur(20px);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+
+  .display.flash::after {
+    opacity: 1;
+  }
+
+  .expression {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 400;
+    min-height: 22px;
+    width: 100%;
+    text-align: left;
+    direction: ltr;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .result {
+    font-size: clamp(38px, 11vw, 54px);
+    font-weight: 700;
+    margin-top: 6px;
+    width: 100%;
+    text-align: left;
+    direction: ltr;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(180deg, #ffffff, #e6e6e6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+  }
+
+  .result.pop {
+    animation: pop 0.25s ease-out;
+  }
+
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+
+  .result.error {
+    background: linear-gradient(180deg, #ff8585, #ff5e5e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* شبکه دکمه‌ها */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    position: relative;
+    height: 68px;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--surface);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.08s ease-out, background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.07) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.2) inset,
+      0 4px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.22), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.18s;
+    pointer-events: none;
+  }
+
+  .btn:hover {
+    background: var(--surface-2);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .btn:hover::before {
+    opacity: 1;
+  }
+
+  .btn:active {
+    transform: translateY(2px) scale(0.94);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.18) inset,
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    background: var(--surface-active);
+  }
+
+  .btn:active::before {
+    opacity: 0.5;
+  }
+
+  .btn.zero {
+    grid-column: span 2;
+  }
+
+  /* دکمه‌های عملگر */
+  .btn.op {
+    background: linear-gradient(180deg, rgba(255, 177, 90, 0.18), rgba(255, 122, 69, 0.1));
+    color: var(--op);
+    border-color: rgba(255, 177, 90, 0.2);
+    font-weight: 600;
+  }
+
+  .btn.op:hover {
+    background: linear-gradient(180deg, rgba(255, 177, 90, 0.3), rgba(255, 122, 69, 0.18));
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.12) inset,
+      0 4px 14px rgba(255, 122, 69, 0.25);
+  }
+
+  .btn.op:active {
+    background: linear-gradient(180deg, rgba(255, 177, 90, 0.4), rgba(255, 122, 69, 0.25));
+  }
+
+  /* دکمه‌های تابعی */
+  .btn.fn {
+    background: rgba(255, 255, 255, 0.085);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .btn.fn:hover {
+    background: rgba(255, 122, 69, 0.15);
+    color: #ffb89a;
+  }
+
+  .btn.fn.danger {
+    color: var(--danger);
+  }
+
+  .btn.fn.danger:hover {
+    background: rgba(255, 94, 94, 0.15);
+  }
+
+  /* دکمه مساوی */
+  .btn.equals {
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    color: white;
+    font-weight: 700;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.3) inset,
+      0 -2px 0 rgba(0, 0, 0, 0.2) inset,
+      0 6px 18px var(--accent-glow);
+  }
+
+  .btn.equals:hover {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.3) inset,
+      0 -2px 0 rgba(0, 0, 0, 0.2) inset,
+      0 8px 26px var(--accent-glow),
+      0 0 40px var(--accent-glow);
+    filter: brightness(1.05);
+  }
+
+  .btn.equals:active {
+    background: linear-gradient(180deg, var(--accent-2), var(--accent));
+    box-shadow:
+      0 2px 5px rgba(0, 0, 0, 0.25) inset,
+      0 0 20px var(--accent-glow);
+  }
+
+  /* حلقه‌ی فعال برای عملگر انتخابشده */
+  .btn.op.selected {
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    color: white;
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 0 22px var(--accent-glow);
+  }
+
+  /* ریپل افکت */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+  }
+
+  .btn.equals .ripple,
+  .btn.op.selected .ripple {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  @keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* فوتر */
+  .footer {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.28);
+    letter-spacing: 0.3px;
+  }
+
+  .footer kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: inherit;
+    font-size: 10px;
+    margin: 0 2px;
+  }
+
+  @media (max-width: 380px) {
+    .btn { height: 60px; font-size: 22px; }
+    .calculator { padding: 18px 14px 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<main class="calculator" role="application" aria-label="ماشین حساب">
+  <div class="top-bar">
+    <div class="brand">CALCULATOR</div>
+    <div class="status-dots" aria-hidden="true">
+      <span class="dot active"></span>
+      <span class="dot active"></span>
+      <span class="dot active"></span>
+    </div>
+  </div>
+
+  <section class="display" aria-live="polite">
+    <div class="expression" id="expression">&nbsp;</div>
+    <div class="result" id="result">0</div>
+  </section>
+
+  <div class="buttons" id="buttons">
+    <button class="btn fn danger" data-action="clear" aria-label="پاک کردن همه">C</button>
+    <button class="btn fn" data-action="back" aria-label="حذف آخرین کاراکتر">⌫</button>
+    <button class="btn fn" data-action="percent" aria-label="درصد">٪</button>
+    <button class="btn op" data-op="/" aria-label="تقسیم">÷</button>
+
+    <button class="btn num" data-num="7">7</button>
+    <button class="btn num" data-num="8">8</button>
+    <button class="btn num" data-num="9">9</button>
+    <button class="btn op" data-op="*" aria-label="ضرب">×</button>
+
+    <button class="btn num" data-num="4">4</button>
+    <button class="btn num" data-num="5">5</button>
+    <button class="btn num" data-num="6">6</button>
+    <button class="btn op" data-op="-" aria-label="تفریق">−</button>
+
+    <button class="btn num" data-num="1">1</button>
+    <button class="btn num" data-num="2">2</button>
+    <button class="btn num" data-num="3">3</button>
+    <button class="btn op" data-op="+" aria-label="جمع">+</button>
+
+    <button class="btn num zero" data-num="0">0</button>
+    <button class="btn num" data-num=".">.</button>
+    <button class="btn equals" data-action="equals" aria-label="محاسبه">=</button>
+  </div>
+
+  <div class="footer">
+    <kbd>۰-۹</kbd> اعداد · <kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd> عملگرها · <kbd>Enter</kbd> مساوی · <kbd>Esc</kbd> پاک کردن
+  </div>
+</main>
+
+<script>
+  // وضعیت ماشین حساب
+  const state = {
+    current: '0',        // عدد فعلی نمایش‌داده‌شده
+    expression: '',      // عبارت قبلی (مثلاً 12 + 5)
+    operator: null,      // عملگر انتخاب‌شده
+    waitingForOperand: false,  // آیا منتظر ورود عدد جدید هستیم
+    justEvaluated: false // آیا تازه محاسبه انجام شده
+  };
+
+  // عناصر DOM
+  const resultEl = document.getElementById('result');
+  const expressionEl = document.getElementById('expression');
+  const displayEl = document.querySelector('.display');
+
+  // تبدیل نمادهای نمایشی به معادل ریاضی و برعکس
+  const opToSymbol = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+  // قالب‌بندی عدد با جداکننده هزارگان (فقط برای نمایش)
+  function formatNumber(numStr) {
+    if (numStr === '' || numStr === 'Error') return numStr;
+    const n = Number(numStr);
+    if (!isFinite(n)) return 'Error';
+    // اگر عدد خیلی بزرگ یا خیلی کوچک است از نماد علمی استفاده کن
+    if (Math.abs(n) >= 1e12 || (n !== 0 && Math.abs(n) < 1e-6)) {
+      return n.toExponential(4);
+    }
+    const [intPart, decPart] = numStr.split('.');
+    const formattedInt = Number(intPart).toLocaleString('en-US');
+    return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+  }
+
+  // به‌روزرسانی صفحه‌نمایش
+  function updateDisplay() {
+    resultEl.textContent = state.current === 'Error'
+      ? 'Error'
+      : formatNumber(state.current);
+
+    // نمایش عبارت
+    if (state.expression) {
+      expressionEl.textContent = state.expression;
+    } else if (state.justEvaluated) {
+      // عبارت نگه داشته می‌شود
+    } else {
+      expressionEl.innerHTML = '&nbsp;';
+    }
+
+    // مارک کردن عملگر انتخاب‌شده
+    document.querySelectorAll('.btn.op').forEach(btn => {
+      btn.classList.toggle('selected',
+        state.operator === btn.dataset.op && state.waitingForOperand);
+    });
+
+    // کلاس ارور
+    resultEl.classList.toggle('error', state.current === 'Error');
+  }
+
+  // انیمیشن کوتاه هنگام تغییر نتیجه
+  function flashDisplay() {
+    resultEl.classList.remove('pop');
+    // force reflow برای ری‌استارت انیمیشن
+    void resultEl.offsetWidth;
+    resultEl.classList.add('pop');
+
+    displayEl.classList.remove('flash');
+    void displayEl.offsetWidth;
+    displayEl.classList.add('flash');
+    setTimeout(() => displayEl.classList.remove('flash'), 400);
+  }
+
+  // ورود عدد
+  function inputNumber(num) {
+    if (state.current === 'Error') clearAll();
+
+    if (state.justEvaluated) {
+      // اگر تازه محاسبه تمام شده، شروع جدید
+      state.current = num === '.' ? '0.' : num;
+      state.expression = '';
+      state.operator = null;
+      state.justEvaluated = false;
+      state.waitingForOperand = false;
+      flashDisplay();
+      updateDisplay();
+      return;
+    }
+
+    if (state.waitingForOperand) {
+      state.current = num === '.' ? '0.' : num;
+      state.waitingForOperand = false;
+    } else {
+      if (num === '.' && state.current.includes('.')) return;
+      if (state.current === '0' && num !== '.') {
+        state.current = num;
+      } else {
+        // جلوگیری از ورود رشته خیلی طولانی
+        if (state.current.replace('.', '').length >= 12) return;
+        state.current += num;
+      }
+    }
+    flashDisplay();
+    updateDisplay();
+  }
+
+  // انتخاب عملگر
+  function inputOperator(op) {
+    if (state.current === 'Error') return;
+
+    // اگر منتظر عملوند هستیم و کاربر عملگر دیگری زد، فقط عملگر عوض شود
+    if (state.waitingForOperand && state.expression) {
+      state.operator = op;
+      state.expression = state.expression.slice(0, -2).trim() + ' ' + opToSymbol[op];
+      updateDisplay();
+      return;
+    }
+
+    // اگر عملگر قبلی وجود دارد، محاسبه کن
+    if (state.operator !== null && !state.justEvaluated) {
+      const result = compute();
+      state.current = result;
+    }
+
+    state.operator = op;
+    state.expression = state.current + ' ' + opToSymbol[op];
+    state.waitingForOperand = true;
+    state.justEvaluated = false;
+    updateDisplay();
+  }
+
+  // محاسبه نهایی
+  function inputEquals() {
+    if (state.operator === null || state.waitingForOperand || state.current === 'Error') {
+      // فقط نمایش همان عدد
+      return;
+    }
+
+    const result = compute();
+    if (result === 'Error') {
+      state.current = 'Error';
+      state.expression = '';
+    } else {
+      state.expression = state.expression + ' ' + state.current + ' =';
+      state.current = result;
+    }
+    state.operator = null;
+    state.waitingForOperand = false;
+    state.justEvaluated = true;
+    flashDisplay();
+    updateDisplay();
+  }
+
+  // اجرای عملیات ریاضی
+  function compute() {
+    const prev = parseFloat(state.expression);
+    const curr = parseFloat(state.current);
+    if (isNaN(prev) || isNaN(curr)) return 'Error';
+
+    let result;
+    switch (state.operator) {
+      case '+': result = prev + curr; break;
+      case '-': result = prev - curr; break;
+      case '*': result = prev * curr; break;
+      case '/':
+        if (curr === 0) return 'Error';
+        result = prev / curr;
+        break;
+      default: return state.current;
+    }
+
+    // گرد کردن برای جلوگیری از خطای اعشاری
+    result = Math.round(result * 1e10) / 1e10;
+
+    // تبدیل به رشته بدون صفرهای اضافی
+    let str = result.toString();
+    if (str.includes('e')) return str;
+    return str;
+  }
+
+  // پاک کردن همه
+  function clearAll() {
+    state.current = '0';
+    state.expression = '';
+    state.operator = null;
+    state.waitingForOperand = false;
+    state.justEvaluated = false;
+    flashDisplay();
+    updateDisplay();
+  }
+
+  // حذف آخرین کاراکتر
+  function backspace() {
+    if (state.current === 'Error') {
+      clearAll();
+      return;
+    }
+    if (state.justEvaluated) {
+      clearAll();
+      return;
+    }
+    if (state.waitingForOperand) {
+      // حذف عملگر
+      state.operator = null;
+      state.expression = '';
+      state.waitingForOperand = false;
+      updateDisplay();
+      return;
+    }
+    if (state.current.length > 1) {
+      state.current = state.current.slice(0, -1);
+    } else {
+      state.current = '0';
+    }
+    updateDisplay();
+  }
+
+  // محاسبه درصد
+  function percent() {
+    if (state.current === 'Error') return;
+    const value = parseFloat(state.current);
+    let result;
+    if (state.operator && state.expression) {
+      // درصد نسبت به عدد قبلی
+      const prev = parseFloat(state.expression);
+      result = (prev * value) / 100;
+    } else {
+      result = value / 100;
+    }
+    state.current = String(result);
+    flashDisplay();
+    updateDisplay();
+  }
+
+  // ایجاد افکت ریپل هنگام کلیک
+  function createRipple(e, btn) {
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    let x, y;
+
+    if (e.touches && e.touches[0]) {
+      x = e.touches[0].clientX - rect.left - size / 2;
+      y = e.touches[0].clientY - rect.top - size / 2;
+    } else {
+      x = (e.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
+      y = (e.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
+    }
+
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  }
+
+  // متصل‌کردن رویدادها به دکمه‌ها
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(btn => {
+    const handler = (e) => {
+      e.preventDefault();
+      createRipple(e, btn);
+
+      if (btn.dataset.num !== undefined) {
+        inputNumber(btn.dataset.num);
+      } else if (btn.dataset.op) {
+        inputOperator(btn.dataset.op);
+      } else if (btn.dataset.action) {
+        switch (btn.dataset.action) {
+          case 'clear':   clearAll();   break;
+          case 'back':    backspace();  break;
+          case 'percent': percent();    break;
+          case 'equals':  inputEquals(); break;
+        }
+      }
+    };
+
+    btn.addEventListener('click', handler);
+  });
+
+  // پشتیبانی از کیبورد
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    let targetBtn = null;
+
+    if (k >= '0' && k <= '9') {
+      targetBtn = document.querySelector(`[data-num="${k}"]`);
+    } else if (k === '.') {
+      targetBtn = document.querySelector(`[data-num="."]`);
+    } else if (k === '+' || k === '-' || k === '*' || k === '/') {
+      targetBtn = document.querySelector(`[data-op="${k}"]`);
+      e.preventDefault();
+    } else if (k === 'Enter' || k === '=') {
+      targetBtn = document.querySelector('[data-action="equals"]');
+      e.preventDefault();
+    } else if (k === 'Escape') {
+      targetBtn = document.querySelector('[data-action="clear"]');
+    } else if (k === 'Backspace') {
+      targetBtn = document.querySelector('[data-action="back"]');
+    } else if (k === '%') {
+      targetBtn = document.querySelector('[data-action="percent"]');
+    }
+
+    if (targetBtn) {
+      targetBtn.click();
+      // جلوه‌ی بصری برای کلید فشرده‌شده
+      targetBtn.style.transform = 'translateY(2px) scale(0.94)';
+      setTimeout(() => { targetBtn.style.transform = ''; }, 100);
+    }
+  });
+
+  // حالت اولیه
+  updateDisplay();
+</script>
+
+</body>
+</html>

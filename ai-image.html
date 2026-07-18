@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>آفرینگر | استودیو تولید تصویر هوش مصنوعی</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-primary: #07070d;
+      --bg-secondary: #0d0d16;
+      --bg-card: #12121e;
+      --bg-elevated: #1a1a2a;
+      --border: #24243a;
+      --border-bright: #2e2e48;
+      --text-primary: #f5f5fa;
+      --text-secondary: #9b9bb5;
+      --text-muted: #5a5a78;
+      --accent: #00ffa3;
+      --accent-glow: rgba(0, 255, 163, 0.4);
+      --accent-2: #ff6bd6;
+      --danger: #ff5577;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --font: 'Vazirmatn', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* پس‌زمینه پویا */
+    .bg-canvas {
+      position: fixed; inset: 0;
+      z-index: 0; opacity: 0.55;
+    }
+
+    .bg-blobs {
+      position: fixed; inset: 0; z-index: 0;
+      overflow: hidden; pointer-events: none;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.28;
+      animation: blob-float 22s infinite ease-in-out;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--accent); top: -120px; right: -100px; }
+    .blob-2 { width: 420px; height: 420px; background: var(--accent-2); bottom: -120px; left: -100px; animation-delay: -10s; }
+    .blob-3 { width: 360px; height: 360px; background: #5b8eff; top: 40%; left: 35%; animation-delay: -5s; }
+
+    @keyframes blob-float {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(70px, -60px) scale(1.1); }
+      66% { transform: translate(-60px, 70px) scale(0.9); }
+    }
+
+    .grid-overlay {
+      position: fixed; inset: 0; z-index: 1;
+      pointer-events: none;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse at center, black 0%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 75%);
+    }
+
+    .container {
+      position: relative; z-index: 2;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* هدر */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo { display: flex; align-items: center; gap: 14px; }
+
+    .logo-mark {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #00b8d4);
+      display: grid; place-items: center;
+      position: relative;
+      box-shadow: 0 0 30px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .logo-mark::before {
+      content: '';
+      position: absolute; inset: -2px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      opacity: 0.4; filter: blur(10px); z-index: -1;
+    }
+    .logo-mark i { color: #001a14; font-size: 22px; }
+
+    .logo-text h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    .logo-text p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .header-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* هیرو */
+    .hero { text-align: center; margin-bottom: 48px; padding: 20px 0; }
+    .hero h2 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 16px;
+    }
+    .gradient-text {
+      background: linear-gradient(120deg, var(--accent) 0%, #00d4ff 50%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* چیدمان اصلی */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* کارت */
+    .card {
+      background: rgba(18, 18, 30, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-bright), transparent);
+    }
+
+    .card-title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+    .card-title i { color: var(--accent); }
+
+    /* فرم */
+    .form-group { margin-bottom: 22px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .prompt-input {
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.7;
+      resize: vertical;
+      transition: all 0.3s;
+    }
+    .prompt-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(0, 255, 163, 0.1);
+    }
+    .prompt-input::placeholder { color: var(--text-muted); }
+
+    .presets {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 12px;
+    }
+    .preset-chip {
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font);
+    }
+    .preset-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .option-select {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239b9bb5' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 14px center;
+      padding-left: 36px;
+      transition: all 0.2s;
+    }
+    .option-select:focus { outline: none; border-color: var(--accent); }
+
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+      margin-bottom: 18px;
+    }
+    .toggle-row label { margin: 0; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .toggle {
+      position: relative;
+      width: 44px; height: 24px;
+      background: var(--bg-elevated);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background 0.3s;
+      border: 1px solid var(--border);
+    }
+    .toggle.active { background: var(--accent); border-color: var(--accent); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px; right: 2px;
+      width: 18px; height: 18px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .toggle.active::after { transform: translateX(-20px); }
+
+    .btn-generate {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent), #00d4ff);
+      border: none;
+      border-radius: var(--radius-md);
+      color: #001a14;
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 255, 163, 0.25);
+    }
+    .btn-generate:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(0, 255, 163, 0.4);
+    }
+    .btn-generate:active:not(:disabled) { transform: translateY(0); }
+    .btn-generate:disabled { opacity: 0.75; cursor: not-allowed; }
+    .btn-generate::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
+      transform: translateX(100%);
+      transition: transform 0.6s;
+    }
+    .btn-generate:hover:not(:disabled)::after { transform: translateX(-100%); }
+
+    /* بخش نمایش */
+    .display-card { min-height: 600px; display: flex; flex-direction: column; }
+    .display-area {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px dashed var(--border-bright);
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 500px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon {
+      width: 80px; height: 80px;
+      margin: 0 auto 20px;
+      border-radius: 20px;
+      background: var(--bg-elevated);
+      display: grid; place-items: center;
+      font-size: 32px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .empty-state h3 {
+      color: var(--text-secondary);
+      font-size: 17px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .empty-state p { font-size: 14px; line-height: 1.7; max-width: 320px; margin: 0 auto; }
+
+    /* لودر */
+    .loader { display: none; flex-direction: column; align-items: center; gap: 24px; }
+    .loader.active { display: flex; }
+
+    .loader-orb {
+      position: relative;
+      width: 120px; height: 120px;
+    }
+    .loader-orb::before, .loader-orb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid transparent;
+    }
+    .loader-orb::before {
+      border-top-color: var(--accent);
+      border-right-color: var(--accent);
+      animation: spin 1.2s linear infinite;
+      filter: drop-shadow(0 0 6px var(--accent-glow));
+    }
+    .loader-orb::after {
+      inset: 14px;
+      border-bottom-color: var(--accent-2);
+      border-left-color: var(--accent-2);
+      animation: spin 1.6s linear infinite reverse;
+      filter: drop-shadow(0 0 6px rgba(255, 107, 214, 0.4));
+    }
+    .loader-core {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px; height: 30px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 40px var(--accent), 0 0 80px var(--accent);
+      animation: pulse-core 1.5s ease-in-out infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse-core {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(0.7); opacity: 0.6; }
+    }
+
+    .loader-text { text-align: center; }
+    .loader-text h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .loader-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .loader-progress {
+      width: 220px; height: 3px;
+      background: var(--bg-elevated);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .loader-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0;
+      transition: width 0.4s;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* تصویر نتیجه */
+    .image-result { display: none; width: 100%; height: 100%; position: relative; }
+    .image-result.active { display: block; }
+    .image-result img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      max-height: 600px;
+      border-radius: var(--radius-md);
+      animation: image-appear 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes image-appear {
+      from { opacity: 0; transform: scale(0.94); filter: blur(8px); }
+      to { opacity: 1; transform: scale(1); filter: blur(0); }
+    }
+
+    .image-info {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .image-info-item { display: flex; align-items: center; gap: 6px; }
+    .image-info-item i { color: var(--accent); }
+
+    .image-actions {
+      display: flex; gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      flex: 1; min-width: 130px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .action-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .action-btn.primary {
+      background: linear-gradient(135deg, var(--accent), #00d4ff);
+      color: #001a14;
+      border: none;
+    }
+    .action-btn.primary:hover { color: #001a14; }
+
+    /* تاریخچه */
+    .history-section { margin-top: 32px; }
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px;
+    }
+    .history-item {
+      position: relative;
+      aspect-ratio: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .history-item:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    }
+    .history-item img { width: 100%; height: 100%; object-fit: cover; }
+    .history-item::after {
+      content: '\f00e';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      background: rgba(0,0,0,0.55);
+      color: var(--accent);
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .history-item:hover::after { opacity: 1; }
+    .history-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex; flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      padding: 14px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-md);
+      backdrop-filter: blur(20px);
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+      animation: toast-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .toast.success { border-color: var(--accent); }
+    .toast.error { border-color: var(--danger); }
+    .toast i { font-size: 18px; }
+    .toast.success i { color: var(--accent); }
+    .toast.error i { color: var(--danger); }
+    @keyframes toast-in {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .toast.fade-out { animation: toast-out 0.3s forwards; }
+    @keyframes toast-out { to { transform: translateY(20px); opacity: 0; } }
+
+    /* مودال تمام صفحه */
+    .fullscreen-modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.93);
+      backdrop-filter: blur(12px);
+      z-index: 999;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 40px;
+      animation: fade-in 0.3s;
+    }
+    .fullscreen-modal.active { display: flex; }
+    .fullscreen-modal img {
+      max-width: 92vw; max-height: 90vh;
+      border-radius: var(--radius-md);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      animation: image-appear 0.5s;
+    }
+    .fullscreen-close {
+      position: absolute;
+      top: 24px; left: 24px;
+      width: 44px; height: 44px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: all 0.2s;
+    }
+    .fullscreen-close:hover {
+      background: var(--danger);
+      border-color: var(--danger);
+      transform: rotate(90deg);
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* فوتر */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* اسکرول‌بار */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* موبایل */
+    @media (max-width: 640px) {
+      .container { padding: 20px 14px; }
+      .card { padding: 20px; }
+      .header-badge { display: none; }
+      .image-actions { flex-direction: column; }
+      .action-btn { width: 100%; }
+      .display-card { min-height: 480px; }
+      .display-area { min-height: 380px; }
+      .image-info { font-size: 11px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="bg-canvas" id="bgCanvas"></canvas>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="grid-overlay"></div>
+
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-mark">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div class="logo-text">
+          <h1>آفرینگر</h1>
+          <p>استودیوی تولید تصویر با هوش مصنوعی</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="status-dot"></span>
+        <span>متصل به Pollinations AI</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h2>ایده‌ات رو به <span class="gradient-text">تصویر</span> تبدیل کن</h2>
+      <p>تخیلت رو بنویس، ما برات یه تصویر خیره‌کننده می‌سازیم. بدون ثبت‌نام، بدون محدودیت، کاملاً رایگان.</p>
+    </section>
+
+    <div class="main-grid">
+      <!-- پنل کنترل -->
+      <aside class="card">
+        <div class="card-title">
+          <i class="fa-solid fa-sliders"></i>
+          <span>پنل کنترل</span>
+        </div>
+
+        <div class="form-group">
+          <label>ایده تصویر</label>
+          <textarea class="prompt-input" id="promptInput" placeholder="مثلاً: یه گربه فضانورد روی ماه در حال نوشیدن قهوه، نور سینمایی، جزئیات بالا..."></textarea>
+          <div class="presets" id="presets"></div>
+        </div>
+
+        <div class="form-group">
+          <label>سبک هنری</label>
+          <select class="option-select" id="styleSelect">
+            <option value="">بدون سبک خاص</option>
+            <option value=", photorealistic, 8k, highly detailed, professional photography">واقع‌گرایانه</option>
+            <option value=", anime style, vibrant colors, studio ghibli">انیمه</option>
+            <option value=", digital art, concept art, trending on artstation">هنر دیجیتال</option>
+            <option value=", oil painting, artistic, textured brush strokes">نقاشی رنگ‌روغن</option>
+            <option value=", cyberpunk, neon lights, futuristic, blade runner">سایبرپانک</option>
+            <option value=", 3d render, octane render, cinema 4d, volumetric lighting">سه‌بعدی</option>
+            <option value=", watercolor, soft colors, delicate, dreamy">آبرنگ</option>
+            <option value=", fantasy art, magical, ethereal, mystical">فانتزی</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>نسبت تصویر</label>
+          <select class="option-select" id="ratioSelect">
+            <option value="square">مربعی (۱:۱)</option>
+            <option value="portrait">عمودی (۹:۱۶)</option>
+            <option value="landscape">افقی (۱۶:۹)</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <label>حالت کیفیت بالا (Enhance)</label>
+          <div class="toggle active" id="enhanceToggle" role="switch" aria-checked="true" tabindex="0"></div>
+        </div>
+
+        <button class="btn-generate" id="generateBtn">
+          <i class="fa-solid fa-bolt"></i>
+          <span>تولید عکس</span>
+        </button>
+      </aside>
+
+      <!-- بخش نمایش -->
+      <section class="card display-card">
+        <div class="card-title">
+          <i class="fa-solid fa-image"></i>
+          <span>خروجی تصویر</span>
+        </div>
+
+        <div class="display-area" id="displayArea">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">
+              <i class="fa-solid fa-mountain-sun"></i>
+            </div>
+            <h3>تصویر اینجا ظاهر می‌شه</h3>
+            <p>ایده‌ت رو در پنل کنترل بنویس و دکمه تولید رو بزن تا جادو شروع بشه.</p>
+          </div>
+
+          <div class="loader" id="loader">
+            <div class="loader-orb">
+              <div class="loader-core"></div>
+            </div>
+            <div class="loader-text">
+              <h4>در حال خلق تصویر...</h4>
+              <p id="loaderStatus">آماده‌سازی درخواست</p>
+            </div>
+            <div class="loader-progress">
+              <div class="loader-progress-bar" id="progressBar"></div>
+            </div>
+          </div>
+
+          <div class="image-result" id="imageResult">
+            <img id="resultImage" alt="تصویر تولید شده توسط هوش مصنوعی">
+          </div>
+        </div>
+
+        <div class="image-info" id="imageInfo" style="display:none;">
+          <div class="image-info-item">
+            <i class="fa-solid fa-clock"></i>
+            <span id="genTime">—</span>
+          </div>
+          <div class="image-info-item">
+            <i class="fa-solid fa-expand"></i>
+            <span id="genSize">—</span>
+          </div>
+          <div class="image-info-item">
+            <i class="fa-solid fa-hashtag"></i>
+            <span id="genSeed">—</span>
+          </div>
+        </div>
+
+        <div class="image-actions" id="imageActions" style="display:none;">
+          <button class="action-btn primary" id="downloadBtn">
+            <i class="fa-solid fa-download"></i>
+            <span>دانلود تصویر</span>
+          </button>
+          <button class="action-btn" id="fullscreenBtn">
+            <i class="fa-solid fa-expand"></i>
+            <span>تمام صفحه</span>
+          </button>
+          <button class="action-btn" id="regenerateBtn">
+            <i class="fa-solid fa-rotate"></i>
+            <span>تولید دوباره</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- تاریخچه -->
+    <section class="card history-section">
+      <div class="card-title">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>تاریخچه تولید (این جلسه)</span>
+      </div>
+      <div class="history-grid" id="historyGrid">
+        <div class="history-empty">هنوز تصویری ساخته نشده. اولین تصویر رو بساز!</div>
+      </div>
+    </section>
+
+    <footer>
+      ساخته شده با ❤️ برای خالقان • قدرت گرفته از <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations AI</a>
+      <br>
+      <span style="opacity:0.6">برای تجربه بهتر از مرورگرهای مدرن (Chrome, Firefox, Edge) استفاده کنید.</span>
+    </footer>
+  </div>
+
+  <!-- مودال تمام‌صفحه -->
+  <div class="fullscreen-modal" id="fullscreenModal">
+    <button class="fullscreen-close" id="closeFullscreen" aria-label="بستن">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img id="fullscreenImg" alt="نمایش کامل تصویر">
+  </div>
+
+  <!-- کانتینر Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ============== پس‌زمینه ذرات ==============
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function createParticles() {
+      particles = [];
+      const count = Math.min(Math.floor((canvas.width * canvas.height) / 20000), 80);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          radius: Math.random() * 1.5 + 0.3,
+          opacity: Math.random() * 0.5 + 0.15
+        });
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // اتصال ذرات نزدیک
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 130) {
+            ctx.strokeStyle = `rgba(0, 255, 163, ${(1 - dist/130) * 0.09})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // رسم ذرات
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        
+        ctx.fillStyle = `rgba(0, 255, 163, ${p.opacity})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      requestAnimationFrame(drawParticles);
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      createParticles();
+    });
+    resizeCanvas();
+    createParticles();
+    if (!prefersReducedMotion) drawParticles();
+
+    // ============== پرامپت‌های آماده ==============
+    const presetPrompts = [
+      'گربه فضانورد روی ماه',
+      'شهر سایبرپانک در شب بارانی',
+      'اژدها در حال پرواز بالای کوه‌های مه‌آلود',
+      'پرتره یک زن با گل‌های نورانی',
+      'قصر شیشه‌ای در اعماق اقیانوس',
+      'ربات قدیمی در جنگل بارانی'
+    ];
+
+    const presetsContainer = document.getElementById('presets');
+    presetPrompts.forEach(p => {
+      const chip = document.createElement('button');
+      chip.className = 'preset-chip';
+      chip.textContent = p;
+      chip.addEventListener('click', () => {
+        document.getElementById('promptInput').value = p;
+        document.getElementById('promptInput').focus();
+      });
+      presetsContainer.appendChild(chip);
+    });
+
+    // ============== Toast ==============
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // ============== المنترهای DOM ==============
+    const promptInput = document.getElementById('promptInput');
+    const styleSelect = document.getElementById('styleSelect');
+    const ratioSelect = document.getElementById('ratioSelect');
+    const enhanceToggle = document.getElementById('enhanceToggle');
+    const generateBtn = document.getElementById('generateBtn');
+    const emptyState = document.getElementById('emptyState');
+    const loader = document.getElementById('loader');
+    const imageResult = document.getElementById('imageResult');
+    const resultImage = document.getElementById('resultImage');
+    const imageInfo = document.getElementById('imageInfo');
+    const imageActions = document.getElementById('imageActions');
+    const progressBar = document.getElementById('progressBar');
+    const loaderStatus = document.getElementById('loaderStatus');
+    const historyGrid = document.getElementById('historyGrid');
+
+    let currentImageURL = '';
+    let enhanceEnabled = true;
+    const history = [];
+
+    // ============== Toggle ==============
+    function toggleEnhance() {
+      enhanceToggle.classList.toggle('active');
+      enhanceEnabled = enhanceToggle.classList.contains('active');
+      enhanceToggle.setAttribute('aria-checked', enhanceEnabled);
+    }
+    enhanceToggle.addEventListener('click', toggleEnhance);
+    enhanceToggle.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleEnhance();
+      }
+    });
+
+    // ============== نسبت‌های تصویر ==============
+    const ratios = {
+      square: { w: 1024, h: 1024, label: '1024×1024' },
+      portrait: { w: 768, h: 1152, label: '768×1152' },
+      landscape: { w: 1152, h: 768, label: '1152×768' }
+    };
+
+    // ============== ساخت URL درخواست ==============
+    function buildPromptURL(prompt, seed) {
+      const style = styleSelect.value;
+      const ratio = ratios[ratioSelect.value];
+      const enhance = enhanceEnabled ? '&enhance=true' : '';
+      const fullPrompt = encodeURIComponent(prompt + style);
+      const url = `https://image.pollinations.ai/prompt/${fullPrompt}?width=${ratio.w}&height=${ratio.h}&seed=${seed}&nologo=true${enhance}&model=flux`;
+      return { url, ratio };
+    }
+
+    // ============== مدیریت نوار پیشرفت ==============
+    let progressInterval;
+    function startProgress() {
+      let progress = 0;
+      progressBar.style.width = '0%';
+      const messages = [
+        'در حال تفسیر ایده...',
+        'ترکیب رنگ‌ها...',
+        'رسم جزئیات...',
+        'اعمال افکت‌ها...',
+        'نهایی‌سازی تصویر...'
+      ];
+      let msgIdx = 0;
+      loaderStatus.textContent = messages[0];
+      
+      progressInterval = setInterval(() => {
+        progress += Math.random() * 7 + 2;
+        if (progress > 92) progress = 92;
+        progressBar.style.width = progress + '%';
+        
+        const newIdx = Math.min(Math.floor(progress / 20), messages.length - 1);
+        if (newIdx !== msgIdx) {
+          msgIdx = newIdx;
+          loaderStatus.textContent = messages[msgIdx];
+        }
+      }, 450);
+    }
+
+    function stopProgress(success = true) {
+      clearInterval(progressInterval);
+      if (success) progressBar.style.width = '100%';
+    }
+
+    function showState(state) {
+      emptyState.style.display = state === 'empty' ? 'block' : 'none';
+      loader.classList.toggle('active', state === 'loading');
+      imageResult.classList.toggle('active', state === 'result');
+    }
+
+    // ============== تولید تصویر ==============
+    async function generateImage() {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        showToast('لطفاً اول یه ایده بنویس!', 'error');
+        promptInput.focus();
+        return;
+      }
+
+      const seed = Math.floor(Math.random() * 1000000);
+      const { url, ratio } = buildPromptURL(prompt, seed);
+      
+      currentImageURL = url;
+
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>در حال تولید...</span>';
+      
+      showState('loading');
+      startProgress();
+
+      const startTime = Date.now();
+      let timeoutId;
+
+      // preload تصویر
+      const img = new Image();
+      
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        img.onload = null;
+        img.onerror = null;
+      };
+      
+      timeoutId = setTimeout(() => {
+        cleanup();
+        stopProgress(false);
+        showState('empty');
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fa-solid fa-bolt"></i><span>تولید عکس</span>';
+        showToast('زمان زیادی سپری شد. لطفاً دوباره تلاش کن.', 'error');
+      }, 90000);
+
+      img.onload = () => {
+        cleanup();
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        stopProgress(true);
+        
+        resultImage.src = url;
+        resultImage.dataset.seed = seed;
+        
+        showState('result');
+        
+        // نمایش اطلاعات
+        imageInfo.style.display = 'flex';
+        document.getElementById('genTime').textContent = elapsed + ' ثانیه';
+        document.getElementById('genSize').textContent = ratio.label;
+        document.getElementById('genSeed').textContent = seed;
+        
+        imageActions.style.display = 'flex';
+        
+        // افزودن به تاریخچه
+        addToHistory(url, prompt, seed, elapsed, ratio.label);
+        
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fa-solid fa-bolt"></i><span>تولید عکس</span>';
+        
+        showToast('تصویر با موفقیت ساخته شد!', 'success');
+      };
+
+      img.onerror = () => {
+        cleanup();
+        stopProgress(false);
+        showState('empty');
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fa-solid fa-bolt"></i><span>تولید عکس</span>';
+        showToast('خطا در تولید تصویر. لطفاً دوباره تلاش کن.', 'error');
+      };
+
+      img.src = url;
+    }
+
+    generateBtn.addEventListener('click', generateImage);
+
+    // میانبر Ctrl+Enter
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        generateImage();
+      }
+    });
+
+    // ============== دانلود تصویر ==============
+    document.getElementById('downloadBtn').addEventListener('click', async () => {
+      try {
+        showToast('در حال آماده‌سازی دانلود...', 'success');
+        const response = await fetch(currentImageURL);
+        if (!response.ok) throw new Error('fetch failed');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `afaringar-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('تصویر دانلود شد!', 'success');
+      } catch (err) {
+        // fallback: باز کردن در تب جدید
+        const a = document.createElement('a');
+        a.href = currentImageURL;
+        a.download = `afaringar-${Date.now()}.png`;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('دانلود مستقیم ناموفق بود. تصویر در تب جدید باز شد.', 'error');
+      }
+    });
+
+    // ============== مودال تمام‌صفحه ==============
+    const fullscreenModal = document.getElementById('fullscreenModal');
+    const fullscreenImg = document.getElementById('fullscreenImg');
+    
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      fullscreenImg.src = currentImageURL;
+      fullscreenModal.classList.add('active');
+    });
+
+    document.getElementById('closeFullscreen').addEventListener('click', () => {
+      fullscreenModal.classList.remove('active');
+    });
+
+    fullscreenModal.addEventListener('click', (e) => {
+      if (e.target === fullscreenModal) {
+        fullscreenModal.classList.remove('active');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && fullscreenModal.classList.contains('active')) {
+        fullscreenModal.classList.remove('active');
+      }
+    });
+
+    // ============== تولید دوباره ==============
+    document.getElementById('regenerateBtn').addEventListener('click', generateImage);
+
+    // ============== تاریخچه ==============
+    function addToHistory(url, prompt, seed, time, size) {
+      history.unshift({ url, prompt, seed, time, size, ts: Date.now() });
+      if (history.length > 12) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (history.length === 0) {
+        historyGrid.innerHTML = '<div class="history-empty">هنوز تصویری ساخته نشده. اولین تصویر رو بساز!</div>';
+        return;
+      }
+      historyGrid.innerHTML = '';
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `<img src="${item.url}" alt="${item.prompt}" loading="lazy">`;
+        div.title = item.prompt;
+        div.addEventListener('click', () => {
+          currentImageURL = item.url;
+          resultImage.src = item.url;
+          showState('result');
+          imageInfo.style.display = 'flex';
+          document.getElementById('genTime').textContent = item.time + ' ثانیه';
+          document.getElementById('genSize').textContent = item.size;
+          document.getElementById('genSeed').textContent = item.seed;
+          imageActions.style.display = 'flex';
+          // اسکرول نرم به بالا
+          document.querySelector('.display-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        historyGrid.appendChild(div);
+      });
+    }
+
+    // فوکوس اولیه
+    promptInput.focus();
+  </script>
+</body>
+</html>

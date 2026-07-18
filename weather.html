@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>هواشناس | پیش‌بینی هوشمند آب و هوا</title>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  :root {
+    --card-bg: rgba(255, 255, 255, 0.12);
+    --card-border: rgba(255, 255, 255, 0.22);
+    --text: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.75);
+    --text-faint: rgba(255, 255, 255, 0.55);
+  }
+
+  body {
+    font-family: 'Vazirmatn', system-ui, sans-serif;
+    min-height: 100vh;
+    color: var(--text);
+    overflow-x: hidden;
+    position: relative;
+    background: #0f0c29;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* لایه گرادیان پس‌زمینه */
+  .bg-gradient {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 50%, #ff99ac 100%);
+    background-size: 200% 200%;
+    transition: background 1.5s ease;
+    animation: bgShift 20s ease infinite;
+  }
+
+  @keyframes bgShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* لایه نویز برای عمق */
+  .bg-gradient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+  }
+
+  #weather-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* هدر */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 14px;
+    font-size: 1.4rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .logo h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo .tagline {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .date-time {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 0.6rem 1.1rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* باکس جستجو */
+  .search-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .search-box {
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 20px;
+    padding: 0.6rem 0.6rem 0.6rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s ease;
+  }
+
+  .search-box:focus-within {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  }
+
+  .search-box > i {
+    font-size: 1.1rem;
+    opacity: 0.85;
+  }
+
+  #cityInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 1.05rem;
+    font-family: inherit;
+    padding: 0.65rem 0;
+  }
+
+  #cityInput::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  #searchBtn {
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a1a2e;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s ease;
+  }
+
+  #searchBtn:hover {
+    background: white;
+    transform: scale(1.03);
+  }
+
+  #searchBtn:active { transform: scale(0.97); }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .suggestions > span {
+    opacity: 0.7;
+    font-size: 0.85rem;
+    margin-left: 0.25rem;
+  }
+
+  .city-chip {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: var(--text);
+    padding: 0.4rem 0.95rem;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .city-chip:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-2px);
+  }
+
+  /* کارت اصلی */
+  .weather-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    padding: 2.5rem;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+    position: relative;
+    overflow: hidden;
+    min-height: 420px;
+    flex: 1;
+  }
+
+  .weather-card::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -40%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    animation: shimmer 25s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shimmer {
+    to { transform: rotate(360deg); }
+  }
+
+  /* حالت‌های بارگذاری/خطا/خالی */
+  .state {
+    text-align: center;
+    padding: 3rem 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .state .icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.85;
+  }
+
+  .state h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .state p {
+    opacity: 0.75;
+    font-size: 1rem;
+  }
+
+  .state .icon.spin {
+    animation: spin 1.5s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* محتوای آب و هوا */
+  .weather-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .city-info h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.5px;
+  }
+
+  .city-info h2 i {
+    font-size: 1.6rem;
+    opacity: 0.85;
+  }
+
+  .city-info p {
+    opacity: 0.8;
+    font-size: 0.95rem;
+  }
+
+  .local-time {
+    background: rgba(255, 255, 255, 0.12);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .weather-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+  }
+
+  .weather-icon {
+    font-size: 7.5rem;
+    text-align: center;
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.35));
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .weather-temp {
+    text-align: center;
+  }
+
+  .weather-temp .temp {
+    font-size: 5rem;
+    font-weight: 200;
+    line-height: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    letter-spacing: -3px;
+  }
+
+  .weather-temp .temp .unit {
+    font-size: 1.8rem;
+    font-weight: 300;
+    margin-top: 0.8rem;
+    margin-right: 0.3rem;
+    letter-spacing: normal;
+  }
+
+  .weather-temp .description {
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+  }
+
+  .weather-temp .feels-like {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    opacity: 0.7;
+  }
+
+  /* جزئیات */
+  .weather-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .detail-item {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .detail-item:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-3px);
+  }
+
+  .detail-item .icon {
+    font-size: 1.3rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .detail-item .label {
+    font-size: 0.82rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+  }
+
+  .detail-item .value {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .detail-item .value .small {
+    font-size: 0.85rem;
+    font-weight: 400;
+    opacity: 0.7;
+  }
+
+  /* پیش‌بینی هفتگی */
+  .forecast {
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding-top: 1.75rem;
+  }
+
+  .forecast h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+
+  .forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.6rem;
+  }
+
+  .forecast-day {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 0.9rem 0.4rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .forecast-day:hover {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-4px);
+  }
+
+  .forecast-day.today {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  .forecast-day .day-name {
+    font-size: 0.82rem;
+    opacity: 0.85;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+
+  .forecast-day .day-icon {
+    font-size: 1.7rem;
+    margin: 0.4rem 0;
+  }
+
+  .forecast-day .day-temps {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .forecast-day .day-temps .max { font-weight: 600; }
+  .forecast-day .day-temps .min { opacity: 0.6; }
+
+  /* انیمیشن ورود */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in {
+    animation: fadeInUp 0.6s ease both;
+  }
+
+  /* فوتر */
+  footer {
+    text-align: center;
+    padding: 1.5rem 0 0.5rem;
+    font-size: 0.85rem;
+    opacity: 0.6;
+  }
+
+  /* ریسپانسیو */
+  @media (max-width: 768px) {
+    .container { padding: 1rem; }
+    .logo h1 { font-size: 1.2rem; }
+    .logo-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+    .search-box { padding: 0.5rem 0.5rem 0.5rem 1rem; }
+    #searchBtn span { display: none; }
+    #searchBtn { padding: 0.75rem 1rem; }
+    .weather-card { padding: 1.5rem; border-radius: 22px; }
+    .weather-main { grid-template-columns: 1fr; gap: 1rem; }
+    .weather-icon { font-size: 5rem; }
+    .weather-temp .temp { font-size: 3.5rem; }
+    .weather-temp .temp .unit { font-size: 1.4rem; }
+    .city-info h2 { font-size: 1.6rem; }
+    .forecast-grid { grid-template-columns: repeat(4, 1fr); }
+    .forecast-day:nth-child(n+5) { display: none; }
+    .suggestions { display: none; }
+    .date-time { font-size: 0.8rem; padding: 0.45rem 0.85rem; }
+  }
+
+  @media (max-width: 480px) {
+    .weather-details { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient" id="bgGradient"></div>
+<canvas id="weather-canvas"></canvas>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-cloud-sun"></i></div>
+      <div>
+        <h1>هواشناس</h1>
+        <div class="tagline">پیش‌بینی هوشمند آب و هوا</div>
+      </div>
+    </div>
+    <div class="date-time" id="dateTime">
+      <i class="fa-regular fa-clock"></i>
+      <span id="dateTimeText">--</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="search-container">
+      <div class="search-box">
+        <i class="fa-solid fa-location-dot"></i>
+        <input type="text" id="cityInput" placeholder="نام شهر را وارد کنید... (مثلاً: تهران، شیراز، پاریس)" autocomplete="off">
+        <button id="searchBtn" aria-label="جستجو">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>جستجو</span>
+        </button>
+      </div>
+      <div class="suggestions">
+        <span>شهرهای پرطرفدار:</span>
+        <button class="city-chip" data-city="تهران">تهران</button>
+        <button class="city-chip" data-city="شیراز">شیراز</button>
+        <button class="city-chip" data-city="اصفهان">اصفهان</button>
+        <button class="city-chip" data-city="مشهد">مشهد</button>
+        <button class="city-chip" data-city="استانبول">استانبول</button>
+        <button class="city-chip" data-city="لندن">لندن</button>
+        <button class="city-chip" data-city="توکیو">توکیو</button>
+        <button class="city-chip" data-city="نیویورک">نیویورک</button>
+      </div>
+    </section>
+
+    <section class="weather-card" id="weatherCard" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    ساخته شده با Open-Meteo API · داده‌ها به‌صورت زنده دریافت می‌شوند
+  </footer>
+</div>
+
+<script>
+  // ==================== عناصر DOM ====================
+  const cityInput = document.getElementById('cityInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const weatherCard = document.getElementById('weatherCard');
+  const dateTimeText = document.getElementById('dateTimeText');
+  const bgGradient = document.getElementById('bgGradient');
+  const canvas = document.getElementById('weather-canvas');
+  const ctx = canvas.getContext('2d');
+
+  // ==================== تنظیم Canvas ====================
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // ==================== نمایش تاریخ و ساعت ====================
+  function updateDateTime() {
+    const now = new Date();
+    const dateStr = new Intl.DateTimeFormat('fa-IR', {
+      weekday: 'long', day: 'numeric', month: 'long'
+    }).format(now);
+    const timeStr = new Intl.DateTimeFormat('fa-IR', {
+      hour: '2-digit', minute: '2-digit'
+    }).format(now);
+    dateTimeText.textContent = `${timeStr} · ${dateStr}`;
+  }
+  updateDateTime();
+  setInterval(updateDateTime, 30000);
+
+  // ==================== نقشه کدهای وضعیت هوا (WMO) ====================
+  function getWeatherInfo(code) {
+    const map = {
+      0:  { name: 'آفتابی',                icon: 'fa-sun',                  anim: 'sunny'  },
+      1:  { name: 'بسیار صاف',             icon: 'fa-sun',                  anim: 'sunny'  },
+      2:  { name: 'نیمه ابری',             icon: 'fa-cloud-sun',            anim: 'cloudy' },
+      3:  { name: 'ابری',                  icon: 'fa-cloud',                anim: 'cloudy' },
+      45: { name: 'مه‌آلود',               icon: 'fa-smog',                 anim: 'foggy'  },
+      48: { name: 'مه یخی',                icon: 'fa-smog',                 anim: 'foggy'  },
+      51: { name: 'نم‌نم باران',           icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      53: { name: 'نم‌نم باران',           icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      55: { name: 'نم‌نم باران شدید',      icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      56: { name: 'باران یخی',             icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      57: { name: 'باران یخی شدید',        icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      61: { name: 'باران سبک',             icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      63: { name: 'باران',                 icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      65: { name: 'باران شدید',            icon: 'fa-cloud-showers-heavy',  anim: 'rainy'  },
+      66: { name: 'باران یخی',             icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      67: { name: 'باران یخی شدید',        icon: 'fa-cloud-showers-heavy',  anim: 'rainy'  },
+      71: { name: 'برف سبک',               icon: 'fa-snowflake',            anim: 'snowy'  },
+      73: { name: 'برف',                   icon: 'fa-snowflake',            anim: 'snowy'  },
+      75: { name: 'برف شدید',              icon: 'fa-snowflake',            anim: 'snowy'  },
+      77: { name: 'دانه‌های برف',          icon: 'fa-snowflake',            anim: 'snowy'  },
+      80: { name: 'رگبار باران',           icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      81: { name: 'رگبار باران',           icon: 'fa-cloud-rain',           anim: 'rainy'  },
+      82: { name: 'رگبار شدید',            icon: 'fa-cloud-showers-heavy',  anim: 'rainy'  },
+      85: { name: 'رگبار برف',             icon: 'fa-snowflake',            anim: 'snowy'  },
+      86: { name: 'رگبار برف شدید',        icon: 'fa-snowflake',            anim: 'snowy'  },
+      95: { name: 'رعد و برق',             icon: 'fa-bolt',                 anim: 'stormy' },
+      96: { name: 'رعد و برق با تگرگ',     icon: 'fa-bolt',                 anim: 'stormy' },
+      99: { name: 'رعد و برق شدید',        icon: 'fa-bolt',                 anim: 'stormy' },
+    };
+    return map[code] || { name: 'نامشخص', icon: 'fa-cloud', anim: 'cloudy' };
+  }
+
+  // ==================== تم رنگی بر اساس هوا ====================
+  function setTheme(weatherAnim, isDay) {
+    let bg;
+    if (!isDay) {
+      bg = 'linear-gradient(135deg, #0f0c29 0%, #1a1a4e 50%, #24243e 100%)';
+    } else {
+      switch (weatherAnim) {
+        case 'sunny':  bg = 'linear-gradient(135deg, #ff9a56 0%, #ff6a88 50%, #ff99ac 100%)'; break;
+        case 'cloudy': bg = 'linear-gradient(135deg, #5b6e8a 0%, #8b9eb5 50%, #b5c4d6 100%)'; break;
+        case 'rainy':  bg = 'linear-gradient(135deg, #2c3e50 0%, #3a5a78 50%, #5a7a96 100%)'; break;
+        case 'snowy':  bg = 'linear-gradient(135deg, #6b8cce 0%, #92a8d8 50%, #b8d4e8 100%)'; break;
+        case 'stormy': bg = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'; break;
+        case 'foggy':  bg = 'linear-gradient(135deg, #606c88 0%, #8995a8 50%, #b0bccf 100%)'; break;
+        default:       bg = 'linear-gradient(135deg, #ff9a56 0%, #ff6a88 50%, #ff99ac 100%)';
+      }
+    }
+    bgGradient.style.background = bg;
+  }
+
+  // ==================== انیمیشن Canvas ====================
+  let particles = [];
+  let currentAnim = 'sunny';
+  let currentIsDay = true;
+  let lightningFlash = 0;
+
+  function createParticles(type, isDay) {
+    particles = [];
+    currentAnim = type;
+    currentIsDay = isDay;
+
+    if (type === 'rainy' || type === 'stormy') {
+      const count = type === 'stormy' ? 250 : 180;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          length: Math.random() * 18 + 10,
+          speed: Math.random() * 9 + 14,
+          opacity: Math.random() * 0.4 + 0.3
+        });
+      }
+    } else if (type === 'snowy') {
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2.8 + 1,
+          speed: Math.random() * 1.2 + 0.4,
+          wind: Math.random() * 1.5 - 0.75,
+          opacity: Math.random() * 0.6 + 0.4,
+          spin: Math.random() * Math.PI * 2
+        });
+      }
+    } else if (type === 'sunny' && isDay) {
+      // ذرات نورانی طلایی برای روز آفتابی
+      for (let i = 0; i < 45; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 0.5,
+          speed: Math.random() * 0.4 + 0.1,
+          wind: Math.random() * 0.8 - 0.4,
+          opacity: Math.random() * 0.5 + 0.2,
+          twinkle: Math.random() * Math.PI * 2
+        });
+      }
+    } else if (type === 'cloudy' && isDay) {
+      // ذرات سفید کم‌رنگ برای روز ابری
+      for (let i = 0; i < 30; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2.5 + 1,
+          speed: Math.random() * 0.3 + 0.05,
+          wind: Math.random() * 0.6 - 0.3,
+          opacity: Math.random() * 0.35 + 0.15,
+          twinkle: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    if (!isDay && type !== 'rainy' && type !== 'stormy' && type !== 'snowy') {
+      // ستارگان شب
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.3,
+          opacity: Math.random() * 0.8 + 0.2,
+          twinkle: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.04 + 0.01,
+          isStar: true
+        });
+      }
+    }
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // فلش رعد و برق
+    if (currentAnim === 'stormy') {
+      if (Math.random() < 0.008) lightningFlash = 8;
+      if (lightningFlash > 0) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash / 20})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        lightningFlash--;
+      }
+    }
+
+    particles.forEach(p => {
+      if (currentAnim === 'rainy' || currentAnim === 'stormy') {
+        // باران
+        ctx.strokeStyle = `rgba(220, 230, 255, ${p.opacity})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - 2, p.y + p.length);
+        ctx.stroke();
+        p.y += p.speed;
+        p.x -= 1.2;
+        if (p.y > canvas.height) {
+          p.y = -p.length;
+          p.x = Math.random() * canvas.width;
+        }
+      } else if (currentAnim === 'snowy') {
+        // برف
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0.3, p.radius), 0, Math.PI * 2);
+        ctx.fill();
+        p.y += p.speed;
+        p.x += p.wind + Math.sin(p.spin) * 0.3;
+        p.spin += 0.02;
+        if (p.y > canvas.height) {
+          p.y = -5;
+          p.x = Math.random() * canvas.width;
+        }
+      } else if (p.isStar) {
+        // ستارگان
+        p.twinkle += p.speed;
+        const alpha = p.opacity * (0.4 + 0.6 * Math.abs(Math.sin(p.twinkle)));
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0.2, p.radius), 0, Math.PI * 2);
+        ctx.fill();
+      } else if (currentAnim === 'sunny' && currentIsDay) {
+        // ذرات طلایی نورانی
+        p.twinkle += 0.04;
+        const alpha = p.opacity * (0.5 + 0.5 * Math.sin(p.twinkle));
+        const r = Math.max(0.5, p.radius);
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4);
+        gradient.addColorStop(0, `rgba(255, 230, 150, ${alpha})`);
+        gradient.addColorStop(1, 'rgba(255, 230, 150, 0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 4, 0, Math.PI * 2);
+        ctx.fill();
+        p.y -= p.speed;
+        p.x += p.wind;
+        if (p.y < -10) {
+          p.y = canvas.height + 10;
+          p.x = Math.random() * canvas.width;
+        }
+      } else if (currentAnim === 'cloudy' && currentIsDay) {
+        // ذرات سفید ابری
+        p.twinkle += 0.02;
+        const alpha = p.opacity * (0.6 + 0.4 * Math.sin(p.twinkle));
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0.5, p.radius), 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.wind;
+        p.y += p.speed;
+        if (p.x > canvas.width + 10) p.x = -10;
+        if (p.x < -10) p.x = canvas.width + 10;
+      }
+    });
+
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // ==================== فراخوانی API ====================
+  async function getCoordinates(cityName) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=fa&format=json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('ارتباط با سرور برقرار نشد');
+    const data = await res.json();
+    if (!data.results || data.results.length === 0) {
+      throw new Error('شهری با این نام یافت نشد');
+    }
+    return data.results[0];
+  }
+
+  async function getWeather(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,is_day,pressure_msl,precipitation` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max` +
+      `&timezone=auto&forecast_days=7`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('دریافت اطلاعات آب و هوا ناموفق بود');
+    return res.json();
+  }
+
+  // ==================== جهت باد ====================
+  function windDirectionText(deg) {
+    const dirs = ['شمال', 'شمال شرق', 'شرق', 'جنوب شرق', 'جنوب', 'جنوب غرب', 'غرب', 'شمال غرب'];
+    return dirs[Math.round(deg / 45) % 8];
+  }
+
+  // ==================== زمان محلی شهر ====================
+  function getLocalTime(timezone) {
+    try {
+      return new Intl.DateTimeFormat('fa-IR', {
+        timeZone: timezone, hour: '2-digit', minute: '2-digit'
+      }).format(new Date());
+    } catch (e) {
+      return new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+    }
+  }
+
+  // ==================== نمایش حالت‌ها ====================
+  function showLoading() {
+    weatherCard.innerHTML = `
+      <div class="state">
+        <div class="icon spin"><i class="fa-solid fa-circle-notch"></i></div>
+        <h3>در حال دریافت اطلاعات...</h3>
+        <p>لطفاً چند لحظه صبر کنید</p>
+      </div>`;
+  }
+
+  function showError(message) {
+    weatherCard.innerHTML = `
+      <div class="state">
+        <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <h3>خطا</h3>
+        <p>${message}</p>
+      </div>`;
+  }
+
+  function showEmpty() {
+    weatherCard.innerHTML = `
+      <div class="state">
+        <div class="icon"><i class="fa-solid fa-cloud-sun"></i></div>
+        <h3>خوش آمدید!</h3>
+        <p>برای مشاهده وضعیت آب و هوا، نام شهر خود را جستجو کنید</p>
+      </div>`;
+  }
+
+  // ==================== نمایش اطلاعات آب و هوا ====================
+  function displayWeather(location, data) {
+    const c = data.current;
+    const d = data.daily;
+    const info = getWeatherInfo(c.weather_code);
+    const isDay = c.is_day === 1;
+
+    setTheme(info.anim, isDay);
+    createParticles(info.anim, isDay);
+
+    const dayNames = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+    const today = new Date(d.time[0]);
+    const todayName = dayNames[today.getDay()];
+
+    const forecastHTML = d.time.map((date, i) => {
+      const dt = new Date(date);
+      const name = i === 0 ? 'امروز' : dayNames[dt.getDay()];
+      const fInfo = getWeatherInfo(d.weather_code[i]);
+      return `
+        <div class="forecast-day fade-in ${i === 0 ? 'today' : ''}" style="animation-delay: ${0.3 + i * 0.06}s">
+          <div class="day-name">${name}</div>
+          <div class="day-icon"><i class="fa-solid ${fInfo.icon}"></i></div>
+          <div class="day-temps">
+            <span class="max">${Math.round(d.temperature_2m_max[i])}°</span>
+            <span class="min">${Math.round(d.temperature_2m_min[i])}°</span>
+          </div>
+        </div>`;
+    }).join('');
+
+    weatherCard.innerHTML = `
+      <div class="weather-content">
+        <div class="weather-header fade-in">
+          <div class="city-info">
+            <h2><i class="fa-solid fa-location-dot"></i> ${location.name}</h2>
+            <p>${[location.country, location.admin1].filter(Boolean).join(' · ')} · ${todayName}</p>
+          </div>
+          <div class="local-time">
+            <i class="fa-regular fa-clock"></i>
+            <span>ساعت محلی: ${getLocalTime(data.timezone)}</span>
+          </div>
+        </div>
+
+        <div class="weather-main fade-in" style="animation-delay: 0.1s">
+          <div class="weather-icon"><i class="fa-solid ${info.icon}"></i></div>
+          <div class="weather-temp">
+            <div class="temp">
+              <span>${Math.round(c.temperature_2m)}</span>
+              <span class="unit">°C</span>
+            </div>
+            <div class="description">${info.name}</div>
+            <div class="feels-like">احساس واقعی: ${Math.round(c.apparent_temperature)}°C</div>
+          </div>
+        </div>
+
+        <div class="weather-details">
+          <div class="detail-item fade-in" style="animation-delay: 0.15s">
+            <div class="icon"><i class="fa-solid fa-droplet"></i></div>
+            <div>
+              <div class="label">رطوبت</div>
+              <div class="value">${c.relative_humidity_2m}<span class="small">٪</span></div>
+            </div>
+          </div>
+          <div class="detail-item fade-in" style="animation-delay: 0.2s">
+            <div class="icon"><i class="fa-solid fa-wind"></i></div>
+            <div>
+              <div class="label">سرعت باد</div>
+              <div class="value">${Math.round(c.wind_speed_10m)} <span class="small">km/h</span></div>
+            </div>
+          </div>
+          <div class="detail-item fade-in" style="animation-delay: 0.25s">
+            <div class="icon"><i class="fa-solid fa-compass"></i></div>
+            <div>
+              <div class="label">جهت باد</div>
+              <div class="value">${windDirectionText(c.wind_direction_10m)}</div>
+            </div>
+          </div>
+          <div class="detail-item fade-in" style="animation-delay: 0.3s">
+            <div class="icon"><i class="fa-solid fa-gauge-high"></i></div>
+            <div>
+              <div class="label">فشار هوا</div>
+              <div class="value">${Math.round(c.pressure_msl)} <span class="small">hPa</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="forecast">
+          <h3><i class="fa-solid fa-calendar-week"></i> پیش‌بینی ۷ روز آینده</h3>
+          <div class="forecast-grid">${forecastHTML}</div>
+        </div>
+      </div>`;
+  }
+
+  // ==================== جستجوی شهر ====================
+  async function searchCity(cityName) {
+    cityName = cityName.trim();
+    if (!cityName) {
+      showError('لطفاً نام شهری وارد کنید');
+      return;
+    }
+    showLoading();
+    try {
+      const location = await getCoordinates(cityName);
+      const weather = await getWeather(location.latitude, location.longitude);
+      displayWeather(location, weather);
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  // ==================== رویدادها ====================
+  searchBtn.addEventListener('click', () => searchCity(cityInput.value));
+  cityInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') searchCity(cityInput.value);
+  });
+
+  document.querySelectorAll('.city-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      cityInput.value = chip.dataset.city;
+      searchCity(chip.dataset.city);
+    });
+  });
+
+  // ==================== بارگذاری اولیه ====================
+  showEmpty();
+  setTheme('sunny', true);
+  createParticles('sunny', true);
+  // نمایش آب و هوای تهران به‌عنوان نمونه اولیه
+  searchCity('تهران');
+</script>
+
+</body>
+</html>

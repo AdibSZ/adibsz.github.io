@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>کارهای من — فهرست انجام</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+  <style>
+    :root {
+      --bg-0: #0a0d12;
+      --bg-1: #11151c;
+      --bg-2: #1a2029;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --fg: #e8eef5;
+      --fg-muted: #8b95a5;
+      --fg-dim: #5a6578;
+      --accent: #4ade80;
+      --accent-glow: rgba(74, 222, 128, 0.4);
+      --accent-2: #f59e0b;
+      --danger: #ef4444;
+      --card: rgba(255, 255, 255, 0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      background: var(--bg-0);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* اتمسفر پس‌زمینه */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at top right, rgba(74, 222, 128, 0.10), transparent 50%),
+        radial-gradient(ellipse at bottom left, rgba(245, 158, 11, 0.07), transparent 50%),
+        radial-gradient(ellipse at center, rgba(74, 222, 128, 0.03), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    }
+
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      animation: float 22s ease-in-out infinite;
+    }
+    .blob-1 {
+      width: 420px; height: 420px;
+      background: var(--accent);
+      opacity: 0.22;
+      top: -120px; right: -120px;
+    }
+    .blob-2 {
+      width: 380px; height: 380px;
+      background: var(--accent-2);
+      opacity: 0.14;
+      bottom: -130px; left: -130px;
+      animation-delay: -11s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(1.1); }
+      66% { transform: translate(-25px, 25px) scale(0.95); }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 50px 20px 60px;
+      min-height: 100vh;
+    }
+
+    /* هدر */
+    header { margin-bottom: 32px; text-align: center; }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 12.5px;
+      color: var(--fg-muted);
+      margin-bottom: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent-glow);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-size: clamp(38px, 8vw, 64px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    h1 .accent {
+      background: linear-gradient(135deg, var(--accent), #86efac);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .subtitle { color: var(--fg-muted); font-size: 15px; }
+
+    /* آمار */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 28px 0 20px;
+    }
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 14px;
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .stat-label { font-size: 11.5px; color: var(--fg-dim); margin-bottom: 6px; }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .stat:nth-child(1) .stat-value { color: var(--fg); }
+    .stat:nth-child(2) .stat-value { color: var(--accent); }
+    .stat:nth-child(3) .stat-value { color: var(--accent-2); }
+
+    /* پیشرفت */
+    .progress-wrap {
+      margin: 0 0 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 18px;
+      backdrop-filter: blur(10px);
+    }
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .progress-head span:first-child { color: var(--fg-muted); }
+    .progress-head span:last-child {
+      color: var(--accent);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #86efac);
+      border-radius: 100px;
+      width: 0%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* ورودی */
+    .input-row { display: flex; gap: 10px; margin-bottom: 18px; }
+    .input-wrap { flex: 1; position: relative; }
+    .input-wrap input {
+      width: 100%;
+      padding: 16px 48px 16px 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 15px;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+    }
+    .input-wrap input::placeholder { color: var(--fg-dim); }
+    .input-wrap input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+    }
+    .input-icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--fg-dim);
+      pointer-events: none;
+    }
+
+    .add-btn {
+      padding: 0 22px;
+      background: var(--accent);
+      color: #052e16;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .add-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px var(--accent-glow);
+    }
+    .add-btn:active { transform: translateY(0); }
+
+    /* فیلترها */
+    .filters {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 16px;
+      padding: 5px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+    }
+    .filter-btn {
+      flex: 1;
+      padding: 10px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      color: var(--fg-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .filter-btn:hover { color: var(--fg); }
+    .filter-btn.active {
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--accent);
+    }
+    .filter-count {
+      font-size: 11px;
+      padding: 2px 7px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 100px;
+      font-variant-numeric: tabular-nums;
+    }
+    .filter-btn.active .filter-count { background: rgba(74, 222, 128, 0.18); }
+
+    /* لیست */
+    .todo-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s, transform 0.2s;
+      animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-16px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .todo-item:hover {
+      border-color: var(--border-strong);
+      transform: translateX(-3px);
+    }
+    .todo-item.removing {
+      animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes slideOut {
+      to {
+        opacity: 0;
+        transform: translateX(50px) scale(0.95);
+        margin-top: -52px;
+      }
+    }
+
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border-strong);
+      border-radius: 7px;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      transition: all 0.2s;
+      background: transparent;
+    }
+    .checkbox:hover {
+      border-color: var(--accent);
+      background: rgba(74, 222, 128, 0.05);
+    }
+    .checkbox.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .checkbox.checked::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      transform: translate(-50%, -50%) rotate(45deg);
+      width: 5px;
+      height: 9px;
+      border: solid #052e16;
+      border-width: 0 2.5px 2.5px 0;
+      animation: checkPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes checkPop {
+      0% { transform: translate(-50%, -50%) rotate(45deg) scale(0); }
+      55% { transform: translate(-50%, -50%) rotate(45deg) scale(1.25); }
+      100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 15px;
+      color: var(--fg);
+      line-height: 1.5;
+      word-break: break-word;
+      transition: all 0.25s;
+    }
+    .todo-item.done .todo-text {
+      color: var(--fg-dim);
+      text-decoration: line-through;
+      text-decoration-color: var(--accent);
+      text-decoration-thickness: 2px;
+    }
+
+    .todo-meta {
+      font-size: 11px;
+      color: var(--fg-dim);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .delete-btn {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--fg-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .delete-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    /* حالت خالی */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--fg-dim);
+    }
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+    }
+    .empty-title { font-size: 15px; color: var(--fg-muted); margin-bottom: 6px; font-weight: 500; }
+    .empty-text { font-size: 13px; }
+
+    /* فوتر */
+    .footer {
+      margin-top: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+      font-size: 12.5px;
+      color: var(--fg-dim);
+    }
+    .clear-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-btn:hover:not(:disabled) {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .clear-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--bg-2);
+      border: 1px solid var(--border-strong);
+      color: var(--fg);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      box-shadow: 0 10px 40px -10px rgba(0,0,0,0.6);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      max-width: 90vw;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: var(--accent); }
+    .toast.success svg { color: var(--accent); }
+    .toast.danger { border-color: var(--danger); }
+    .toast.danger svg { color: var(--danger); }
+
+    /* رسپانسیو */
+    @media (max-width: 600px) {
+      .app { padding: 32px 16px; }
+      .input-row { flex-direction: column; }
+      .add-btn { padding: 14px; justify-content: center; }
+      .stat-value { font-size: 22px; }
+      .footer { flex-direction: column-reverse; gap: 12px; align-items: stretch; }
+      .clear-btn { width: 100%; }
+      .todo-meta { display: none; }
+    }
+
+    /* اسکرول‌بار */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-0); }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span>در حال فعالیت</span>
+      </div>
+      <h1>کارهای <span class="accent">من</span></h1>
+      <p class="subtitle">برنامه‌ریزی روزانه، تمرکز بر آنچه واقعاً مهم است</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">کل کارها</div>
+        <div class="stat-value" id="statTotal">۰</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">انجام شده</div>
+        <div class="stat-value" id="statDone">۰</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">باقی‌مانده</div>
+        <div class="stat-value" id="statRemaining">۰</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-head">
+        <span>پیشرفت امروز</span>
+        <span id="progressPercent">۰٪</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-wrap">
+        <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        <input type="text" id="todoInput" placeholder="یک کار جدید اضافه کن..." maxlength="200" autocomplete="off" />
+      </div>
+      <button class="add-btn" id="addBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        افزودن
+      </button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">
+        <span>همه</span>
+        <span class="filter-count" id="countAll">۰</span>
+      </button>
+      <button class="filter-btn" data-filter="active">
+        <span>باقی‌مانده</span>
+        <span class="filter-count" id="countActive">۰</span>
+      </button>
+      <button class="filter-btn" data-filter="done">
+        <span>انجام شده</span>
+        <span class="filter-count" id="countDone">۰</span>
+      </button>
+    </div>
+
+    <ul class="todo-list" id="todoList"></ul>
+
+    <div class="footer">
+      <span id="footerText">هنوز کاری اضافه نشده</span>
+      <button class="clear-btn" id="clearBtn" disabled>پاک کردن انجام‌شده‌ها</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // تبدیل اعداد انگلیسی به فارسی
+    const toPersian = (n) => String(n).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+    // زمان نسبی به فارسی
+    function timeAgo(timestamp) {
+      const seconds = Math.floor((Date.now() - timestamp) / 1000);
+      if (seconds < 60) return 'همین حالا';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${toPersian(minutes)} دقیقه پیش`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${toPersian(hours)} ساعت پیش`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${toPersian(days)} روز پیش`;
+      const months = Math.floor(days / 30);
+      return `${toPersian(months)} ماه پیش`;
+    }
+
+    // ساخت شناسه یکتا
+    function makeId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    // متغیرهای وضعیت
+    let todos = [];
+    let currentFilter = 'all';
+
+    // میانبرهای DOM
+    const $ = (id) => document.getElementById(id);
+    const input = $('todoInput');
+    const addBtn = $('addBtn');
+    const list = $('todoList');
+    const toast = $('toast');
+
+    // بارگذاری از localStorage
+    function load() {
+      try {
+        const data = localStorage.getItem('todos-fa');
+        if (data) todos = JSON.parse(data);
+      } catch (e) {
+        todos = [];
+      }
+
+      // آیتم‌های نمونه برای اولین بازدید
+      if (todos.length === 0 && !localStorage.getItem('todos-visited')) {
+        todos = [
+          { id: makeId(), text: 'طراحی رابط کاربری مدرن برای پروژه جدید', done: false, createdAt: Date.now() - 1000 * 60 * 5 },
+          { id: makeId(), text: 'تمرین زبان انگلیسی به مدت ۳۰ دقیقه', done: true, createdAt: Date.now() - 1000 * 60 * 60 * 2 },
+          { id: makeId(), text: 'خرید مواد غذایی از سوپرمارکت', done: false, createdAt: Date.now() - 1000 * 60 * 30 }
+        ];
+        localStorage.setItem('todos-visited', '1');
+        save();
+      }
+    }
+
+    function save() {
+      localStorage.setItem('todos-fa', JSON.stringify(todos));
+    }
+
+    // نمایش Toast
+    let toastTimer;
+    function showToast(msg, type = '') {
+      clearTimeout(toastTimer);
+      toast.className = 'toast ' + type;
+      const iconSuccess = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      const iconDanger = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+      toast.innerHTML = (type === 'success' ? iconSuccess : type === 'danger' ? iconDanger : '') + `<span>${msg}</span>`;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    // افزودن کار
+    function addTodo(text) {
+      const trimmed = text.trim();
+      if (!trimmed) {
+        showToast('متن کار نمی‌تواند خالی باشد', 'danger');
+        return;
+      }
+      todos.unshift({
+        id: makeId(),
+        text: trimmed,
+        done: false,
+        createdAt: Date.now()
+      });
+      save();
+      render();
+      showToast('کار جدید اضافه شد', 'success');
+    }
+
+    // تغییر وضعیت انجام
+    function toggleTodo(todoId) {
+      const todo = todos.find(t => t.id === todoId);
+      if (todo) {
+        todo.done = !todo.done;
+        save();
+        render();
+      }
+    }
+
+    // حذف کار
+    function deleteTodo(todoId) {
+      const el = document.querySelector(`[data-id="${todoId}"]`);
+      if (el) {
+        el.classList.add('removing');
+        setTimeout(() => {
+          todos = todos.filter(t => t.id !== todoId);
+          save();
+          render();
+        }, 280);
+      }
+    }
+
+    // پاک کردن کارهای انجام شده
+    function clearDone() {
+      const doneCount = todos.filter(t => t.done).length;
+      if (doneCount === 0) {
+        showToast('کاری برای پاک کردن وجود ندارد', 'danger');
+        return;
+      }
+      todos = todos.filter(t => !t.done);
+      save();
+      render();
+      showToast(`${toPersian(doneCount)} کار انجام‌شده پاک شد`, 'success');
+    }
+
+    // تنظیم فیلتر
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      render();
+    }
+
+    // گرفتن آیتم‌های فیلتر شده
+    function getFiltered() {
+      if (currentFilter === 'active') return todos.filter(t => !t.done);
+      if (currentFilter === 'done') return todos.filter(t => t.done);
+      return todos;
+    }
+
+    // فرار از HTML برای جلوگیری از XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // رندر اصلی
+    function render() {
+      const filtered = getFiltered();
+      const total = todos.length;
+      const done = todos.filter(t => t.done).length;
+      const remaining = total - done;
+
+      // آمار
+      $('statTotal').textContent = toPersian(total);
+      $('statDone').textContent = toPersian(done);
+      $('statRemaining').textContent = toPersian(remaining);
+
+      // شمارش فیلترها
+      $('countAll').textContent = toPersian(total);
+      $('countActive').textContent = toPersian(remaining);
+      $('countDone').textContent = toPersian(done);
+
+      // نوار پیشرفت
+      const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+      $('progressFill').style.width = percent + '%';
+      $('progressPercent').textContent = toPersian(percent) + '٪';
+
+      // متن فوتر
+      $('footerText').textContent = remaining === 0
+        ? (total === 0 ? 'هنوز کاری اضافه نشده' : 'همه کارها انجام شده‌اند')
+        : `${toPersian(remaining)} کار باقی‌مانده`;
+
+      $('clearBtn').disabled = done === 0;
+
+      // رندر لیست
+      if (filtered.length === 0) {
+        let emptyTitle = 'هنوز کاری وجود ندارد';
+        let emptyText = 'اولین کار خود را اضافه کن';
+        if (currentFilter === 'active' && total > 0) {
+          emptyTitle = 'کاری باقی نمانده';
+          emptyText = 'همه کارها انجام شده‌اند';
+        } else if (currentFilter === 'done') {
+          emptyTitle = 'هنوز کاری انجام نشده';
+          emptyText = 'کارهای انجام شده اینجا نمایش داده می‌شوند';
+        }
+        list.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+            </div>
+            <div class="empty-title">${emptyTitle}</div>
+            <div class="empty-text">${emptyText}</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = filtered.map(todo => `
+        <li class="todo-item ${todo.done ? 'done' : ''}" data-id="${todo.id}">
+          <div class="checkbox ${todo.done ? 'checked' : ''}" data-action="toggle" data-id="${todo.id}" role="checkbox" aria-checked="${todo.done}" tabindex="0"></div>
+          <div class="todo-text">${escapeHtml(todo.text)}</div>
+          <div class="todo-meta">${timeAgo(todo.createdAt)}</div>
+          <button class="delete-btn" data-action="delete" data-id="${todo.id}" aria-label="حذف کار">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </li>
+      `).join('');
+    }
+
+    // رویدادها
+    addBtn.addEventListener('click', () => {
+      addTodo(input.value);
+      input.value = '';
+      input.focus();
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        addTodo(input.value);
+        input.value = '';
+      }
+    });
+
+    // کلیک‌ها روی لیست (event delegation)
+    list.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]');
+      if (!action) return;
+      const todoId = action.dataset.id;
+      const act = action.dataset.action;
+      if (act === 'toggle') toggleTodo(todoId);
+      else if (act === 'delete') deleteTodo(todoId);
+    });
+
+    // پشتیبانی کیبورد برای چک‌باکس
+    list.addEventListener('keydown', (e) => {
+      const action = e.target.closest('[data-action="toggle"]');
+      if (!action) return;
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        toggleTodo(action.dataset.id);
+      }
+    });
+
+    // فیلترها
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => setFilter(btn.dataset.filter));
+    });
+
+    // پاک کردن انجام‌شده‌ها
+    $('clearBtn').addEventListener('click', clearDone);
+
+    // میانبر کیبورد: / برای فوکوس روی ورودی
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== input) {
+        e.preventDefault();
+        input.focus();
+      }
+    });
+
+    // راه‌اندازی اولیه
+    load();
+    render();
+
+    // به‌روزرسانی زمان نسبی هر دقیقه
+    setInterval(() => {
+      if (todos.length > 0) render();
+    }, 60000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ساعت دیجیتال زنده</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff88;
+    --green-soft: #4dffb0;
+    --green-deep: #00cc6a;
+    --bg-deep: #020806;
+    --bg-mid: #061410;
+    --panel: rgba(0, 30, 20, 0.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(0, 255, 136, 0.10), transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(0, 200, 120, 0.07), transparent 55%),
+      linear-gradient(180deg, var(--bg-mid), var(--bg-deep));
+    color: var(--green);
+    font-family: 'Vazirmatn', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* شبکه پس‌زمینه */
+  .grid-bg {
+    position: fixed;
+    inset: -2px;
+    background-image:
+      linear-gradient(rgba(0, 255, 136, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 136, 0.045) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 85%);
+            mask-image: radial-gradient(ellipse at center, black 25%, transparent 85%);
+  }
+
+  /* بلوپ‌های شناور نورانی */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 {
+    width: 360px; height: 360px;
+    background: rgba(0, 255, 136, 0.22);
+    top: -120px; left: -100px;
+    animation: float1 14s ease-in-out infinite;
+  }
+  .blob-2 {
+    width: 280px; height: 280px;
+    background: rgba(0, 180, 100, 0.18);
+    bottom: -80px; right: -60px;
+    animation: float2 17s ease-in-out infinite;
+  }
+  @keyframes float1 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(60px, 80px); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(-50px, -60px); }
+  }
+
+  /* خط اسکن */
+  .scanline {
+    position: fixed;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0.35;
+    box-shadow: 0 0 18px var(--green);
+    pointer-events: none;
+    z-index: 1;
+    animation: scan 9s linear infinite;
+  }
+  @keyframes scan {
+    0% { top: -2%; opacity: 0; }
+    8% { opacity: 0.4; }
+    92% { opacity: 0.4; }
+    100% { top: 102%; opacity: 0; }
+  }
+
+  /* کانتینر اصلی */
+  .clock-container {
+    position: relative;
+    z-index: 2;
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 136, 0.25);
+    border-radius: 18px;
+    padding: 2.8rem 2.5rem;
+    box-shadow:
+      0 0 60px rgba(0, 255, 136, 0.08),
+      0 0 30px rgba(0, 255, 136, 0.12) inset,
+      0 20px 60px rgba(0, 0, 0, 0.5);
+    max-width: 720px;
+    width: 100%;
+  }
+
+  /* گوشه‌های تزئینی */
+  .clock-container::before,
+  .clock-container::after {
+    content: '';
+    position: absolute;
+    width: 22px; height: 22px;
+    border: 2px solid var(--green);
+    box-shadow: 0 0 12px var(--green);
+  }
+  .clock-container::before {
+    top: -2px; left: -2px;
+    border-right: none; border-bottom: none;
+    border-top-left-radius: 14px;
+  }
+  .clock-container::after {
+    bottom: -2px; right: -2px;
+    border-left: none; border-top: none;
+    border-bottom-right-radius: 14px;
+  }
+
+  /* سرتیتر */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--green-soft);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    margin-bottom: 1.8rem;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--green), 0 0 4px var(--green);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.25; transform: scale(0.85); }
+  }
+
+  /* ساعت */
+  .time-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(3rem, 11vw, 5.5rem);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: var(--green);
+    line-height: 1;
+    text-shadow:
+      0 0 6px rgba(0, 255, 136, 0.95),
+      0 0 14px rgba(0, 255, 136, 0.75),
+      0 0 28px rgba(0, 255, 136, 0.55),
+      0 0 48px rgba(0, 255, 136, 0.35),
+      0 0 80px rgba(0, 255, 136, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    direction: ltr;
+  }
+
+  .digits {
+    display: inline-block;
+    min-width: 2.2ch;
+    text-align: center;
+  }
+
+  .colon {
+    display: inline-block;
+    padding: 0 0.08em;
+    animation: colon-blink 1s steps(2, start) infinite;
+  }
+  @keyframes colon-blink {
+    50% { opacity: 0.18; }
+  }
+
+  /* افکت تیک ثانیه */
+  .tick {
+    animation: tick-flash 0.4s ease-out;
+  }
+  @keyframes tick-flash {
+    0% { transform: translateY(-3px); filter: brightness(1.6); }
+    100% { transform: translateY(0); filter: brightness(1); }
+  }
+
+  /* AM/PM */
+  .ampm {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--green-soft);
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-top: 0.6rem;
+    opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+  }
+
+  /* جداکننده */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.5), transparent);
+    margin: 1.8rem 0;
+    position: relative;
+  }
+  .divider::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--green);
+  }
+
+  /* تاریخ شمسی */
+  .date-display {
+    text-align: center;
+    color: var(--green-soft);
+  }
+  .date-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 0.7rem;
+  }
+  .persian-date {
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--green);
+    text-shadow:
+      0 0 8px rgba(0, 255, 136, 0.55),
+      0 0 22px rgba(0, 255, 136, 0.3);
+    letter-spacing: 0.01em;
+  }
+  .persian-date .year { color: var(--green-soft); }
+  .gregorian-date {
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.85rem;
+    color: var(--green-soft);
+    opacity: 0.6;
+    margin-top: 0.4rem;
+    font-weight: 300;
+  }
+
+  /* فوتر */
+  .footer {
+    margin-top: 1.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green-soft);
+    opacity: 0.55;
+    letter-spacing: 0.1em;
+  }
+  .footer .live {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .footer .live::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: blink 1s steps(2) infinite;
+  }
+
+  @media (max-width: 480px) {
+    .clock-container { padding: 2rem 1.3rem; }
+    .time-display { font-size: 2.7rem; }
+    .persian-date { font-size: 1.15rem; }
+    .footer { flex-direction: column; gap: 0.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001s !important;
+      transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="scanline"></div>
+
+  <main class="clock-container" role="main" aria-label="ساعت دیجیتال زنده">
+    <div class="header">
+      <span class="dot" aria-hidden="true"></span>
+      <span>System Clock // Live</span>
+    </div>
+
+    <div class="time-display" id="time" aria-live="polite" aria-atomic="true">
+      <span class="digits" id="hours">00</span>
+      <span class="colon">:</span>
+      <span class="digits" id="minutes">00</span>
+      <span class="colon">:</span>
+      <span class="digits" id="seconds">00</span>
+    </div>
+
+    <div class="ampm" id="ampm">--</div>
+
+    <div class="divider" aria-hidden="true"></div>
+
+    <div class="date-display">
+      <div class="date-label">Persian Calendar</div>
+      <div class="persian-date" id="persian-date">— — —</div>
+      <div class="gregorian-date" id="gregorian-date">—</div>
+    </div>
+
+    <div class="footer">
+      <span class="live">REAL-TIME</span>
+      <span id="timezone">UTC+00:00</span>
+    </div>
+  </main>
+
+  <script>
+    // ============ تبدیل میلادی به شمسی (الگوریتم بدون کتابخانه) ============
+    function gregorianToJalali(gy, gm, gd) {
+      const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+      let gy2 = (gm > 2) ? (gy + 1) : gy;
+      let days = 355666 +
+        (365 * gy) +
+        Math.floor((gy2 + 3) / 4) -
+        Math.floor((gy2 + 99) / 100) +
+        Math.floor((gy2 + 399) / 400) +
+        gd +
+        g_d_m[gm - 1];
+
+      let jy = -1595 + (33 * Math.floor(days / 12053));
+      days %= 12053;
+      jy += 4 * Math.floor(days / 1461);
+      days %= 1461;
+
+      if (days > 365) {
+        jy += Math.floor((days - 1) / 365);
+        days = (days - 1) % 365;
+      }
+
+      let jm, jd;
+      if (days < 186) {
+        jm = 1 + Math.floor(days / 31);
+        jd = 1 + (days % 31);
+      } else {
+        jm = 7 + Math.floor((days - 186) / 30);
+        jd = 1 + ((days - 186) % 30);
+      }
+
+      return { jy, jm, jd };
+    }
+
+    // ============ نام‌های فارسی ============
+    const persianMonths = [
+      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+    ];
+
+    const persianWeekdays = [
+      'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه',
+      'پنج‌شنبه', 'جمعه', 'شنبه'
+    ];
+
+    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+
+    function toPersianDigits(input) {
+      return String(input).replace(/\d/g, d => persianDigits[parseInt(d, 10)]);
+    }
+
+    // ============ منابع DOM ============
+    const $hours    = document.getElementById('hours');
+    const $minutes  = document.getElementById('minutes');
+    const $seconds  = document.getElementById('seconds');
+    const $ampm     = document.getElementById('ampm');
+    const $persian  = document.getElementById('persian-date');
+    const $gregorian= document.getElementById('gregorian-date');
+    const $timezone = document.getElementById('timezone');
+
+    // ============ آپدیت تاریخ (یک بار در روز کافیست، اما برای اطمینان هر دقیقه) ============
+    function updateDate() {
+      const now = new Date();
+      const gy  = now.getFullYear();
+      const gm  = now.getMonth() + 1;
+      const gd  = now.getDate();
+
+      const { jy, jm, jd } = gregorianToJalali(gy, gm, gd);
+
+      const weekdayName = persianWeekdays[now.getDay()];
+      const monthName   = persianMonths[jm - 1];
+
+      $persian.innerHTML =
+        `${weekdayName}، ${toPersianDigits(jd)} ${monthName} ` +
+        `<span class="year">${toPersianDigits(jy)}</span>`;
+
+      const gregMonths = [
+        'January','February','March','April','May','June',
+        'July','August','September','October','November','December'
+      ];
+      $gregorian.textContent =
+        `${gregMonths[now.getMonth()]} ${gd}, ${gy}`;
+    }
+
+    // ============ آپدیت زمان (هر ثانیه) ============
+    let lastSecond = -1;
+
+    function updateTime() {
+      const now = new Date();
+      const h24 = now.getHours();
+      const m   = now.getMinutes();
+      const s   = now.getSeconds();
+
+      // نمایش 24 ساعته
+      $hours.textContent   = String(h24).padStart(2, '0');
+      $minutes.textContent = String(m).padStart(2, '0');
+      $seconds.textContent = String(s).padStart(2, '0');
+
+      // AM/PM
+      $ampm.textContent = (h24 < 12) ? 'AM // قبل از ظهر' : 'PM // بعد از ظهر';
+
+      // افکت تیک روی ثانیه
+      if (s !== lastSecond) {
+        $seconds.classList.remove('tick');
+        // Reflow برای ریست انیمیشن
+        void $seconds.offsetWidth;
+        $seconds.classList.add('tick');
+        lastSecond = s;
+      }
+
+      // آپدیت تاریخ در نیمه‌شب
+      if (h24 === 0 && m === 0 && s === 0) updateDate();
+    }
+
+    // ============ آفست زمان‌سنج ============
+    function updateTimezone() {
+      const offset = -new Date().getTimezoneOffset();
+      const sign = offset >= 0 ? '+' : '-';
+      const abs  = Math.abs(offset);
+      const hh = String(Math.floor(abs / 60)).padStart(2, '0');
+      const mm = String(abs % 60).padStart(2, '0');
+      $timezone.textContent = `UTC${sign}${hh}:${mm}`;
+    }
+
+    // ============ راه‌اندازی ============
+    updateDate();
+    updateTime();
+    updateTimezone();
+
+    // همگام‌سازی با شروع ثانیه بعدی برای تیک دقیق‌تر
+    const msToNextSecond = 1000 - (Date.now() % 1000);
+    setTimeout(() => {
+      updateTime();
+      setInterval(updateTime, 1000);
+    }, msToNextSecond);
+
+    // آپدیت تاریخ هر دقیقه (برای پوشش تغییر روز در مرورگرهای باز طولانی)
+    setInterval(updateDate, 60 * 1000);
+  </script>
+</body>
+</html>
