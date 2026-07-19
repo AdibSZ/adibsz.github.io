@@ -1,5 +1,5 @@
 /* ============================================
-   اسکریپت اصلی پورتفولیو
+   اسکریپت اصلی وبسایت
    تمام تعاملات و رندر محتوا در این فایل
    ============================================ */
 
@@ -161,7 +161,7 @@
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     // عنوان صفحه
-    document.title = `${data.profile.name} | پورتفولیو شخصی`;
+    document.title = `${data.profile.name} | وبسایت شخصی`;
   }
 
   /* ============================================
@@ -598,7 +598,7 @@
         }
       } catch (err) {
         // در صورت خطا، باز کردن mailto به‌عنوان fallback
-        const subject = formData.get('subject') || 'تماس از پورتفولیو';
+        const subject = formData.get('subject') || 'تماس از وبسایت';
         const body = `نام: ${name}\nایمیل: ${email}\n\n${message}`;
         window.location.href = `mailto:${data.contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         note.textContent = 'برای ارسال پیام، لطفاً ایمیل خود را بررسی کنید.';
